@@ -2,7 +2,7 @@ name: Test e pubblicazione
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'claude/compassionate-sagan-q6but7']
   pull_request:
   workflow_dispatch:
 

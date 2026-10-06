@@ -37,11 +37,11 @@ C'è anche la modalità **Gioca in locale** (stesso dispositivo), utile per impa
 
 ## Pubblicazione (GitHub Pages)
 
-Il workflow `.github/workflows/deploy.yml` esegue i test, compila il sito e lo pubblica a ogni push sul ramo `main`.
+Il workflow `.github/workflows/deploy.yml` esegue i test, compila il sito e lo pubblica a ogni push sul ramo predefinito (o su `main`).
 
 1. Su GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. Unisci il ramo di sviluppo in `main` (o lancia il workflow a mano da **Actions**).
-3. Il sito sarà su `https://<utente>.github.io/Never-Mind-the-Billhooks/`.
+2. Vai in **Actions → Test e pubblicazione → Run workflow** (oppure fai un nuovo push).
+3. Il sito sarà su `https://froll0.github.io/Never-Mind-the-Billhooks/`.
 
 ## Sviluppo
 
