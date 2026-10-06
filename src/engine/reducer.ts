@@ -50,7 +50,7 @@ export type Intent = { side: Side; seed?: number } & (
   | { t: 'attackLeader'; unitId: string; leaderId: string }
   | { t: 'rally'; unitId: string; what?: 'disarray' | 'daunted' }
   | { t: 'packUp'; unitId: string }
-  | { t: 'special'; unitId: string; kind: 'split' | 'join' | 'stakes' | 'dismountKnights' | 'dismountLH' | 'remountLH' | 'formBlock' | 'chopHedge'; otherId?: string; featureId?: string }
+  | { t: 'special'; unitId: string; kind: 'split' | 'join' | 'stakes' | 'dismountKnights' | 'dismountLH' | 'remountLH' | 'formBlock' | 'chopHedge' | 'reformBlock'; otherId?: string; featureId?: string }
   | { t: 'toggleWoodEdge'; unitId: string }
   | { t: 'order'; leaderId: string; unitId: string }
   | { t: 'leaderMove'; leaderId: string; x: number; y: number; attachTo?: string }
@@ -807,6 +807,13 @@ function specialAction(ctx: Ctx, u: Unit, it: Extract<Intent, { t: 'special' }>)
       o.removedReason = 'unita in formazione';
       syncAttachedLeaders(s, u);
       ctx.log(`${u.name} e ${o.name} formano ${formation === 'line' ? 'una Linea' : formation === 'block' ? 'un Blocco' : 'un Blocco Misto'}.`, 'info', u.side);
+      return;
+    }
+    case 'reformBlock': {
+      if (u.formation !== 'hedgehog') fail('Non è in formazione a riccio');
+      spendAction(ctx, u, 1);
+      u.formation = 'block';
+      ctx.log(`${u.name} riforma il blocco di picche.`, 'info', u.side);
       return;
     }
     case 'stakes': {

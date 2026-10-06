@@ -51,6 +51,7 @@ export function planMove(
   const from = { x: u.x, y: u.y };
   let to = { x: target.x, y: target.y };
   const res: MovePlan = { ok: false, dest: { ...to, facing }, distance: 0, allowance: 0, disarray: 0, notes, disarrayOthers: [], badGoing: false };
+  if (u.formation === 'hedgehog') return { ...res, reason: 'Il riccio di picche non può muoversi: prima riforma il blocco (1 azione)' };
   if (isArtillery(u)) {
     if (u.companies[0].type === 'heavyGun') return { ...res, reason: 'I pezzi pesanti non si possono muovere' };
     if (u.gunDeployed) return { ...res, reason: 'Il pezzo è schierato: serve prima l\'azione "Aggancia/Sgancia" (2 azioni)' };

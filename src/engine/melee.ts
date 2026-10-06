@@ -85,7 +85,7 @@ export function checkAttack(s: GameState, u: Unit, t: Unit, opts: { charge?: boo
   // Visibilità all'inizio del movimento (dall'unità o dal comandante che dà l'ordine).
   const fc = frontCenter(unitRect(u));
   const los = lineOfSight(s, fc, t, [u.id]);
-  const l = leaderOf(s, u);
+  const l = leaderOf(s, u) ?? (s.activation?.kind === 'leader' && s.activation.side === u.side ? s.leaders[s.activation.leaderId!] : undefined);
   const los2 = l ? lineOfSight(s, { x: l.x, y: l.y }, t, [u.id]) : { ok: false };
   if (!los.ok && !los2.ok) return { ok: false, reason: `Il bersaglio non era visibile: ${los.reason}` };
   const side = t.meleeId ? attackSide(u, t) : attackSide(u, t);

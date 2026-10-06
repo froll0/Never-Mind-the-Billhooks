@@ -93,6 +93,14 @@ export function Board(p: Props) {
     setView({ x: w.x - ((w.x - view.x) * nw) / view.w, y: w.y - ((w.y - view.y) * nh) / view.h, w: nw, h: nh });
   }
 
+  function zoomBy(k: number) {
+    const cx = view.x + view.w / 2;
+    const cy = view.y + view.h / 2;
+    const nw = Math.max(10, Math.min(W * 1.6, view.w * k));
+    const nh = nw * (view.h / view.w);
+    setView({ x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh });
+  }
+
   function finishLine() {
     if (tool.k === 'line' && tool.points.length >= 2) {
       p.dispatch({ t: 'addLine', feature: { kind: tool.kind, points: tool.points } });
@@ -479,9 +487,20 @@ export function Board(p: Props) {
         )}
       </svg>
       {hoverUnit && tool.k === 'none' && <UnitTooltip s={s} u={hoverUnit} me={p.me} />}
-      <button className="small flip-btn" onClick={() => setFlipPref(!flip)} title="Ruota la vista del tavolo di 180°">
-        ⟲ Ruota vista
-      </button>
+      <div className="board-buttons">
+        <button className="small" onClick={() => zoomBy(1 / 1.3)} title="Ingrandisci">
+          +
+        </button>
+        <button className="small" onClick={() => zoomBy(1.3)} title="Riduci">
+          −
+        </button>
+        <button className="small" onClick={() => setView({ x: -1, y: -1, w: W + 2, h: H + 2 })} title="Mostra tutto il tavolo">
+          ⤢
+        </button>
+        <button className="small" onClick={() => setFlipPref(!flip)} title="Ruota la vista del tavolo di 180°">
+          ⟲ Ruota vista
+        </button>
+      </div>
       <div className="board-help">
         Rotella: zoom · trascina: sposta la vista{tool.k === 'place' || tool.k === 'move' || tool.k === 'manualMove' ? ' · Q/E: ruota (Maiusc = 5°)' : ''}
         {tool.k === 'line' || tool.k === 'defence' ? ' · clic per i punti, doppio clic o Invio per finire' : ''} · Esc: annulla

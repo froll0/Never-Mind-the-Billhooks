@@ -300,7 +300,8 @@ function SpecialMenu(p: Props & { u: Unit }) {
   const { u } = p;
   const c = u.companies[0];
   const opts: { v: string; label: string }[] = [];
-  if (u.companies.length === 2) opts.push({ v: 'split', label: 'Dividi la formazione' });
+  if (u.formation === 'hedgehog') opts.push({ v: 'reformBlock', label: 'Riforma il blocco (1 azione)' });
+  if (u.companies.length === 2 && u.formation !== 'hedgehog') opts.push({ v: 'split', label: 'Dividi la formazione' });
   if (u.companies.length === 1 && TROOPS[c.type].arm === 'infantry') {
     opts.push({ v: 'join', label: 'Forma una Linea con…' });
     opts.push({ v: 'formBlock', label: 'Forma un Blocco con…' });
@@ -321,7 +322,7 @@ function SpecialMenu(p: Props & { u: Unit }) {
         else if (v) p.dispatch({ t: 'special', unitId: u.id, kind: v as any });
       }}
     >
-      <option value="">Azione speciale (2 azioni)…</option>
+      <option value="">Azione speciale…</option>
       {opts.map((o) => (
         <option key={o.v} value={o.v}>
           {o.label}

@@ -28,6 +28,9 @@ function actorOf(s: GameState): Side | null {
   if (s.phase === 'manoeuvre') return s.activeSide;
   if (s.phase === 'battle' && s.activation) return s.activation.side;
   if (s.phase === 'terrain') return s.terrainSide;
+  if (s.phase === 'endTurn' && s.endTurn) return !s.endTurn.freeDone.A ? 'A' : !s.endTurn.freeDone.B ? 'B' : null;
+  if (s.phase === 'deploy') return !s.deployReady.A ? 'A' : !s.deployReady.B ? 'B' : null;
+  if (s.phase === 'setup') return !s.armyReady.A ? 'A' : !s.armyReady.B ? 'B' : null;
   return null;
 }
 

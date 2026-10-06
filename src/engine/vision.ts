@@ -24,7 +24,9 @@ export function unitsBlocking(s: GameState, a: Point, b: Point, exclude: string[
   const res: Unit[] = [];
   const shooterOnHill = shooter ? onHill(s, { x: shooter.x, y: shooter.y }) : false;
   for (const u of liveUnits(s)) {
-    if (u.unplaced || exclude.includes(u.id) || isSkirmisher(u)) continue;
+    if (u.unplaced || exclude.includes(u.id)) continue;
+    // Gli Schermagliatori non bloccano la vista, ma non si tira mai attraverso truppe amiche.
+    if (isSkirmisher(u) && !(shooter && u.side === shooter.side)) continue;
     const poly = unitPoly(u);
     let d = Infinity;
     for (let i = 0; i < 4; i++) {

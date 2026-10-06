@@ -1114,9 +1114,15 @@ footer {
   }
 }
 
-.flip-btn {
+.board-buttons {
   position: absolute;
   right: 8px;
   bottom: 6px;
-  opacity: 0.85;
+  display: flex;
+  gap: 4px;
+  opacity: 0.9;
+}
+
+.board-buttons button {
+  min-width: 30px;
 }
