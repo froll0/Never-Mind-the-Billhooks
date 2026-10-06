@@ -9,7 +9,7 @@ import { Dice } from './rng';
 import { loadArmy, type ArmyDef } from './setup';
 import { resolveShooting, validTargets } from './shooting';
 import { beginEndTurn, buildSpecialDeck, computeArmyMorale, drawPlayCard, eligibleForFreeAction, maybeFinishEndTurn, startBattle } from './turn';
-import type { AreaFeature, GameState, LineFeature, Side, Unit } from './types';
+import type { AreaFeature, GameState, LineFeature, LineKind, Side, Unit } from './types';
 import { otherSide } from './types';
 import {
   cinc,
@@ -296,7 +296,23 @@ function handle(ctx: Ctx, it: Intent) {
     }
     case 'placeDefence': {
       mustBePhase(ctx, 'deploy');
+      if (it.points.length < 2) fail('Servono almeno due punti');
+      let len = 0;
+      for (let i = 0; i < it.points.length - 1; i++) len += dist(it.points[i], it.points[i + 1]);
+      const inZone = it.points.every((p) => (it.side === 'A' ? p.y >= s.table.height - 12 : p.y <= 12));
+      if (!inZone) fail('Le difese vanno piazzate vicino alla propria zona di schieramento');
+      if (it.kind === 'fieldDefence') {
+        if (s.defencesToPlace[it.side] <= 0) fail("Non hai acquistato (altre) difese campali nell'esercito");
+        if (len > 5.5) fail('Ogni tratto di difese campali è largo quanto il fronte di una Compagnia (circa 5")');
+        s.defencesToPlace[it.side]--;
+      } else {
+        const c = liveUnits(s, it.side).flatMap((u) => u.companies).find((x) => x.stakes && !x.stakesPlanted);
+        if (!c) fail('Nessuna Compagnia di Arcieri con pali ancora da piantare');
+        if (len > 5.5) fail('I pali coprono il fronte di una Compagnia (circa 5")');
+        c.stakesPlanted = true;
+      }
       s.terrain.lines.push({ id: ctx.newId('tl'), kind: it.kind, points: it.points, owner: it.side });
+      ctx.log(`${s.players[it.side].name} piazza ${it.kind === 'stakes' ? 'i pali degli arcieri' : 'un tratto di difese campali'}.`, 'info', it.side);
       return;
     }
     case 'deployReady': {
@@ -1038,30 +1054,43 @@ function deployZoneCheck(s: GameState, u: Unit, poly: { x: number; y: number }[]
 
 function randomTerrain(ctx: Ctx) {
   const s = ctx.s;
-  const d = () => ctx.dice.roll(1, ctx.actor, 'Terreno')[0];
-  const areas: AreaFeature[] = [];
-  const lines: LineFeature[] = [];
+  const rnd = ctx.dice.random();
   const W = s.table.width;
   const H = s.table.height;
-  const nFeatures = 3 + Math.floor(d() / 2);
-  const kinds: AreaFeature['kind'][] = ['wood', 'hill', 'wood', 'hill', 'marsh', 'builtUp'];
-  for (let i = 0; i < nFeatures; i++) {
-    const kind = kinds[(d() - 1) % kinds.length];
-    const cx = 8 + ((d() + d() * 6) / 42) * (W - 16);
-    const cy = 12 + ((d() - 1) / 5) * (H - 24);
-    const rx = 4 + d();
-    const ry = 3 + d() * 0.7;
+  const areas: AreaFeature[] = [];
+  const lines: LineFeature[] = [];
+  // Griglia di 4×2 celle nella fascia centrale (fuori dalle zone di schieramento): una cosa per cella al massimo.
+  const cells: { x: number; y: number }[] = [];
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) cells.push({ x: 4 + (i + 0.5) * ((W - 8) / 4), y: 13 + (j + 0.5) * ((H - 26) / 2) });
+  for (let i = cells.length - 1; i > 0; i--) {
+    const k = Math.floor(rnd() * (i + 1));
+    [cells[i], cells[k]] = [cells[k], cells[i]];
+  }
+  const n = 3 + Math.floor(rnd() * 3);
+  const kinds: AreaFeature['kind'][] = ['wood', 'hill', 'wood', 'hill', 'marsh', 'builtUp', 'steepHill'];
+  for (let i = 0; i < n; i++) {
+    const c = cells[i];
+    const kind = kinds[Math.floor(rnd() * kinds.length)];
+    const cx = c.x + (rnd() - 0.5) * 4;
+    const cy = c.y + (rnd() - 0.5) * 3;
     if (kind === 'builtUp') {
-      areas.push({ id: ctx.newId('ta'), kind: 'building', points: [{ x: cx - 1.5, y: cy - 1 }, { x: cx + 1.5, y: cy - 1 }, { x: cx + 1.5, y: cy + 1 }, { x: cx - 1.5, y: cy + 1 }] });
+      areas.push({ id: ctx.newId('ta'), kind: 'builtUp', points: ellipsePolygon(cx, cy, 4 + rnd() * 2, 3 + rnd() * 1.5, 8, 0) });
+      const bw = 1.5 + rnd();
+      areas.push({ id: ctx.newId('ta'), kind: 'building', points: [{ x: cx - bw, y: cy - 1 }, { x: cx + bw, y: cy - 1 }, { x: cx + bw, y: cy + 1 }, { x: cx - bw, y: cy + 1 }] });
       continue;
     }
-    areas.push({ id: ctx.newId('ta'), kind, points: ellipsePolygon(cx, cy, rx, ry, 18, 0.12) });
+    const rx = 4 + rnd() * 3.5;
+    const ry = 2.5 + rnd() * 2;
+    areas.push({ id: ctx.newId('ta'), kind, points: ellipsePolygon(cx, cy, rx, ry, 18, kind === 'wood' || kind === 'marsh' ? 0.12 : 0.05) });
   }
-  const nHedges = Math.floor(d() / 3);
-  for (let i = 0; i < nHedges; i++) {
-    const x = 10 + ((d() - 1) / 5) * (W - 20);
-    const y = 16 + ((d() - 1) / 5) * (H - 32);
-    lines.push({ id: ctx.newId('tl'), kind: d() <= 4 ? 'hedge' : 'wall', points: [{ x: x - 6, y }, { x, y: y + 0.5 }, { x: x + 6, y }] });
+  // Siepi o muri in celle libere.
+  const nl = Math.floor(rnd() * 3);
+  for (let i = 0; i < nl; i++) {
+    const c = cells[n + i];
+    if (!c) break;
+    const half = 4 + rnd() * 3;
+    const kind: LineKind = rnd() < 0.6 ? 'hedge' : rnd() < 0.5 ? 'wall' : 'stream';
+    lines.push({ id: ctx.newId('tl'), kind, points: [{ x: c.x - half, y: c.y + (rnd() - 0.5) }, { x: c.x, y: c.y + (rnd() - 0.5) * 1.5 }, { x: c.x + half, y: c.y + (rnd() - 0.5) }] });
   }
   return { areas, lines };
 }

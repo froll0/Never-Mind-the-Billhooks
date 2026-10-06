@@ -313,6 +313,8 @@ export interface GameState {
   idCounter: number;
   /** Intent più recente (per la carta Ritira). */
   lastIntentId: number;
+  /** Tratti di difese campali ancora da piazzare. */
+  defencesToPlace: Record<Side, number>;
   /** Mischie da risolvere (all'uscita della prima carta Bonus o per nuovi attacchi). */
   meleeQueue: string[];
 }

@@ -87,7 +87,6 @@ export function planMove(
   }
   // Ostacoli lineari
   if (distance > 0.05) {
-    const startPoly = unitPoly(u);
     const fc0 = frontCenter(unitRect(u));
     const dir = mul(sub(to, from), 1 / distance);
     for (const l of s.terrain.lines) {
@@ -121,7 +120,6 @@ export function planMove(
       }
       if (res.truncated) break;
     }
-    void startPoly;
   }
   res.dest = { x: to.x, y: to.y, facing };
   // Attraversare unità
@@ -140,9 +138,7 @@ export function planMove(
     if (endOverlap) return { ...res, reason: `Non si può terminare il movimento sopra ${o.name}` };
     const sameArm = crossArm(o) === myArm;
     if (o.meleeId) return { ...res, reason: `${o.name} è in mischia: non si può attraversare` };
-    let brexitScuffle = false;
-    if (s.options.brexit && sameArm) brexitScuffle = false;
-    if (!sameArm || brexitScuffle) {
+    if (!sameArm) {
       if (!isSkirmisher(o)) {
         res.disarray++;
         notes.push(`attraversa ${o.name} (arma diversa)`);
@@ -154,10 +150,6 @@ export function planMove(
   const endPoly = unitPoly(u, res.dest);
   if (endPoly.some((p) => p.x < -0.01 || p.y < -0.01 || p.x > s.table.width + 0.01 || p.y > s.table.height + 0.01)) {
     if (!opts.evade && !opts.retreat) return { ...res, reason: 'Il movimento porterebbe l\'unità fuori dal tavolo' };
-  }
-  if (isSkirmisher(u)) res.disarray = Math.min(res.disarray, res.disarray); // gli schermagliatori ricevono Disordine solo da attraversamenti
-  if (isSkirmisher(u)) {
-    res.disarray = notes.some((n) => n.includes('arma diversa')) ? 1 : 0;
   }
   if (opts.manoeuvre && !bad) {
     // Nessuna penalità di movimento in terreno buono durante la Manovra.

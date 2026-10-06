@@ -141,7 +141,8 @@ function newMelee(ctx: Ctx, attacker: Unit, defender: Unit): Melee {
 /** Esegue un attacco: movimento a contatto, reazione del difensore, primo round. */
 export function performAttack(ctx: Ctx, u: Unit, t: Unit, opts: { charge?: boolean; manoeuvre?: boolean; ambush?: boolean }) {
   const s = ctx.s;
-  const oneAction = u.actionsUsed === 0 || !!opts.manoeuvre;
+  // L'azione d'attacco è già stata scalata: "una sola azione" significa che è la prima.
+  const oneAction = u.actionsUsed <= 1 || !!opts.manoeuvre;
   const chk = checkAttack(s, u, t, opts);
   if (!chk.ok || !chk.dest) fail(chk.reason ?? 'Attacco non valido');
   const startPos = { x: u.x, y: u.y };
@@ -975,7 +976,7 @@ export function attackLeader(ctx: Ctx, u: Unit, l: Leader) {
   const reach = (unitMove(u, false) ?? 6) + (isCavalry(u) ? CHARGE_BONUS : 0);
   const d = dist(u, l);
   if (d > reach + unitRect(u).d / 2 + 0.5) fail(`Il comandante è troppo lontano (${d.toFixed(1)}")`);
-  const oneAction = u.actionsUsed === 0;
+  const oneAction = u.actionsUsed <= 1;
   ctx.log(`${u.name} attacca il comandante isolato ${l.name}!`, 'combat', u.side);
   if (!(isCavalry(u) && oneAction)) {
     const away = bearing({ x: u.x, y: u.y }, { x: l.x, y: l.y });

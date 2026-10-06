@@ -88,6 +88,7 @@ export function newGame(id: string, players: { A: string; B: string }, options: 
     idCounter: 0,
     lastIntentId: 0,
     meleeQueue: [],
+    defencesToPlace: { A: 0, B: 0 },
   };
 }
 
@@ -152,6 +153,7 @@ export function loadArmy(s: GameState, side: Side, a: ArmyDef) {
   for (const id of Object.keys(s.leaders)) if (s.leaders[id].side === side) delete s.leaders[id];
   for (const id of Object.keys(s.wards)) if (s.wards[id].side === side) delete s.wards[id];
   s.players[side].faction = a.faction || s.players[side].faction;
+  s.defencesToPlace[side] = a.fieldDefences ?? 0;
   const facing = side === 'A' ? 0 : 180;
   const pre = side + '-';
   for (const l of a.leaders) {

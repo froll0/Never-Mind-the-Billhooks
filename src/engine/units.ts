@@ -172,8 +172,9 @@ export function leaderPos(l: Leader): Point {
 export function syncAttachedLeaders(s: GameState, u: Unit) {
   for (const l of Object.values(s.leaders)) {
     if (l.attachedTo === u.id && !l.killed) {
+      // Il comandante sta subito dietro l'unità, al centro.
       const r = unitRect(u);
-      const back = frontCenter({ ...r, facing: (r.facing + 180) % 360 });
+      const back = frontCenter({ ...r, d: r.d + 1.8, facing: (r.facing + 180) % 360 });
       l.x = back.x;
       l.y = back.y;
     }

@@ -10,7 +10,7 @@ export function must(s: Session, it: Intent) {
 }
 
 /** Crea una partita con gli eserciti di esempio già schierati, nella Fase di Manovra. */
-export function deployedGame(armies?: { A?: ArmyDef; B?: ArmyDef }, place?: (s: GameState, side: Side) => Record<string, { x: number; y: number; facing?: number }>): Session {
+export function deployedGame(armies?: { A?: ArmyDef; B?: ArmyDef }, place?: (s: GameState, side: Side) => Partial<Record<string, { x: number; y: number; facing?: number }>>): Session {
   const s = new Session(newGame('t', { A: 'York', B: 'Lancaster' }));
   must(s, { t: 'setArmy', side: 'A', army: armies?.A ?? sampleArmy('A') });
   must(s, { t: 'setArmy', side: 'B', army: armies?.B ?? sampleArmy('B') });

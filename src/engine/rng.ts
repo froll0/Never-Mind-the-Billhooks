@@ -66,7 +66,14 @@ export class Dice {
     return final;
   }
 
-  /** Numero casuale senza registrazione (mescolare i mazzi). */
+  /** Numero casuale in [0,1) senza registrazione (terreno casuale). */
+  random(): () => number {
+    const r = this.nextRand();
+    this.group++;
+    return r;
+  }
+
+  /** Mescola senza registrazione (mazzi di carte). */
   shuffle<T>(arr: T[]): T[] {
     const r = this.nextRand();
     this.group++;
