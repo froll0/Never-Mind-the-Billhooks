@@ -15,6 +15,19 @@ La connessione è diretta tra i due browser (WebRTC tramite il servizio gratuito
 
 C'è anche la modalità **Gioca in locale** (stesso dispositivo), utile per imparare le regole: l'app passa automaticamente al giocatore che deve agire e permette di annullare l'ultima azione.
 
+## Comandi sul tavolo
+
+Si gioca direttamente sul tavolo; il banner in alto dice sempre cosa fare e ha il pulsante principale (Gira la carta, Termina attivazione, Passa…).
+
+- **Muovere**: trascina l'unità. L'anteprima diventa verde o rossa e mostra distanza e penalità. Su telefono: tocca l'unità, tocca la destinazione e conferma con «Muovi qui».
+- **Tirare o attaccare**: con un'unità selezionata, clicca un nemico: si apre un menu con Tira (dadi e risultato necessario), Attacca e Carica.
+- **Convergere**: «Converge» nella scheda dell'unità, poi trascina una delle maniglie gialle sugli angoli anteriori (oppure ±45°/±90°).
+- **Ordini**: durante la carta di un Comandante le unità che può ordinare sono evidenziate nel suo cerchio di 6"; l'Ordine viene dato da solo alla prima azione.
+- **Comandanti**: trascinali per muoverli; rilasciali su un'unità amica per aggregarli.
+- **Schieramento**: scegli le unità dal vassoio in basso o usa «Schieramento automatico», poi trascinale per sistemarle (Q/E o i pulsanti ↺ ↻ per ruotare).
+- **Vista**: rotella o pizzico per lo zoom, trascina il tavolo per spostarlo; a destra ci sono zoom, «tutto il tavolo», rotazione della vista e righello.
+- **Registro, regole e strumenti manuali** sono nel pannello «📜 Registro e regole».
+
 ## Cosa fa l'app
 
 - **Preparazione**: costruttore d'eserciti con punti e controlli di composizione (Compagnie, formazioni in Linea, Blocco e Blocco misto, Leva/Seguito/Veterani, pali, pavesi, difese campali), Comandanti con classe di comando (anche casuale), Schiere. Gli eserciti si salvano ed esportano in JSON.

@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { TROOPS } from '../engine/data';
-import type { AreaKind, GameState, LineKind, Side } from '../engine/types';
-import { otherSide } from '../engine/types';
-import { liveLeaders, liveUnits } from '../engine/units';
-import { AREA_NAMES, LINE_NAMES, type Selection, type Tool } from './tools';
+import type { GameState, Side } from '../engine/types';
+import type { Selection, Tool } from './tools';
 import type { IntentIn } from './useGame';
 
 interface P {
@@ -13,153 +11,6 @@ interface P {
   setTool: (t: Tool) => void;
   dispatch: (it: IntentIn) => boolean;
   selection?: Selection;
-}
-
-export function TerrainPanel(p: P) {
-  const s = p.state;
-  const mine = s.terrainSide === p.me;
-  if (!mine)
-    return (
-      <div className="panel">
-        <div className="box">
-          <h3>Terreno</h3>
-          <p>
-            {s.players[s.terrainSide].name} sta preparando il terreno. Poi sceglierai da quale lato schierarti.
-          </p>
-        </div>
-      </div>
-    );
-  const areaKinds: AreaKind[] = ['wood', 'hill', 'steepHill', 'marsh', 'builtUp', 'building'];
-  const lineKinds: LineKind[] = ['hedge', 'wall', 'stream', 'fence'];
-  return (
-    <div className="panel">
-      <div className="box">
-        <h3>Prepara il terreno</h3>
-        <p className="small">Hai vinto il lancio della moneta. Disegna il campo di battaglia: l'avversario sceglierà poi il lato.</p>
-        <h4>Aree (trascina per disegnare)</h4>
-        <div className="row wrap">
-          {areaKinds.map((k) => (
-            <button key={k} className={p.tool.k === 'area' && p.tool.kind === k ? 'active' : ''} onClick={() => p.setTool({ k: 'area', kind: k })}>
-              {AREA_NAMES[k]}
-            </button>
-          ))}
-        </div>
-        <h4>Linee (clic sui punti, doppio clic per finire)</h4>
-        <div className="row wrap">
-          {lineKinds.map((k) => (
-            <button key={k} className={p.tool.k === 'line' && p.tool.kind === k ? 'active' : ''} onClick={() => p.setTool({ k: 'line', kind: k, points: [] })}>
-              {LINE_NAMES[k]}
-            </button>
-          ))}
-        </div>
-        <div className="row wrap">
-          <button className={p.tool.k === 'pickFeature' ? 'active' : ''} onClick={() => p.setTool({ k: 'pickFeature', purpose: 'delete' })}>
-            Cancella elemento
-          </button>
-          <button onClick={() => p.dispatch({ t: 'randomTerrain' })}>Terreno casuale</button>
-          <button onClick={() => confirm('Cancellare tutto il terreno?') && p.dispatch({ t: 'clearTerrain' })}>Svuota</button>
-        </div>
-        <p className="muted small">
-          Boschi, paludi, colline ripide e abitati sono terreno difficile. Le colline normali influenzano attacchi in salita e tiro sopra le teste. Siepi e muri sono ostacoli e copertura leggera.
-        </p>
-        <button className="primary" onClick={() => p.dispatch({ t: 'terrainDone' })}>
-          Terreno pronto
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export function DeployPanel(p: P) {
-  const s = p.state;
-  const units = liveUnits(s, p.me);
-  const leaders = liveLeaders(s, p.me);
-  const unplaced = units.filter((u) => u.unplaced);
-  const placed = units.filter((u) => !u.unplaced);
-  const lUnplaced = leaders.filter((l) => l.unplaced);
-  const ready = s.deployReady[p.me];
-  const facing = p.me === 'A' ? 0 : 180;
-  const stakes = units.flatMap((u) => u.companies).filter((c) => c.stakes && !c.stakesPlanted).length;
-  return (
-    <div className="panel">
-      <div className="box">
-        <h3>Schieramento</h3>
-        <p className="small">
-          Comincia <b>{s.players[s.firstSide].name}</b>. Di norma si schierano prima Schermagliatori e Artiglieria, poi una Schiera alla volta. La tua zona è la fascia colorata sul tuo lato
-          {p.me === 'A' ? ' (in basso)' : ' (in alto)'}. Q/E ruotano l'unità prima di piazzarla.
-        </p>
-        <p className="small">
-          Avversario: {s.deployReady[otherSide(p.me)] ? 'pronto ✓' : 'sta schierando…'}
-        </p>
-        {unplaced.length > 0 && (
-          <>
-            <h4>Da schierare</h4>
-            <ul className="plain">
-              {unplaced.map((u) => (
-                <li key={u.id}>
-                  <button className={p.tool.k === 'place' && p.tool.unitId === u.id ? 'active' : ''} onClick={() => p.setTool({ k: 'place', unitId: u.id, facing })}>
-                    {u.name}
-                  </button>{' '}
-                  <span className="muted small">
-                    {u.companies.map((c) => TROOPS[c.type].name).join(' + ')} · {s.wards[u.wardId]?.name}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        {lUnplaced.length > 0 && (
-          <>
-            <h4>Comandanti</h4>
-            <ul className="plain">
-              {lUnplaced.map((l) => (
-                <li key={l.id}>
-                  <button className={p.tool.k === 'placeLeader' && p.tool.leaderId === l.id ? 'active' : ''} onClick={() => p.setTool({ k: 'placeLeader', leaderId: l.id })}>
-                    {l.isCinC ? '♛ ' : ''}
-                    {l.name}
-                  </button>{' '}
-                  <span className="muted small">clic su un'unità per aggregarlo, o sul tavolo</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        {(s.defencesToPlace[p.me] > 0 || stakes > 0) && (
-          <>
-            <h4>Difese</h4>
-            <div className="row wrap">
-              {s.defencesToPlace[p.me] > 0 && (
-                <button onClick={() => p.setTool({ k: 'defence', kind: 'fieldDefence', points: [] })}>Difese campali ({s.defencesToPlace[p.me]})</button>
-              )}
-              {stakes > 0 && <button onClick={() => p.setTool({ k: 'defence', kind: 'stakes', points: [] })}>Pali degli arcieri ({stakes})</button>}
-            </div>
-            <p className="muted small">Clic per i punti (circa 5" di lunghezza), doppio clic per finire.</p>
-          </>
-        )}
-        {placed.length > 0 && (
-          <details>
-            <summary>Unità schierate ({placed.length})</summary>
-            <ul className="plain">
-              {placed.map((u) => (
-                <li key={u.id}>
-                  {u.name}{' '}
-                  <button className="small" onClick={() => p.setTool({ k: 'place', unitId: u.id, facing: u.facing })}>
-                    Sposta
-                  </button>
-                  <button className="small" onClick={() => p.dispatch({ t: 'unplace', unitId: u.id })}>
-                    Togli
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
-        <button className={ready ? '' : 'primary'} onClick={() => p.dispatch({ t: 'deployReady', ready: !ready })}>
-          {ready ? 'Modifica schieramento' : 'Schieramento completato ✓'}
-        </button>
-      </div>
-    </div>
-  );
 }
 
 export function ManualPanel(p: P & { selection: Selection }) {
@@ -179,10 +30,10 @@ export function ManualPanel(p: P & { selection: Selection }) {
             📏 Righello
           </button>
           <button className={p.tool.k === 'manualMove' ? 'active' : ''} onClick={() => p.setTool(p.tool.k === 'manualMove' ? { k: 'none' } : { k: 'manualMove' })}>
-            Spostamento libero
+            ✋ Spostamento libero
           </button>
         </div>
-        {p.tool.k === 'manualMove' && <p className="hint">Clicca un'unità o un comandante, poi il punto di arrivo (Q/E per ruotare).</p>}
+        <p className="muted small">Seleziona un'unità o un comandante sul tavolo per modificarne figure, perdite e segnalini qui sotto.</p>
       </div>
       {u && (
         <div className="box">
